@@ -1,7 +1,7 @@
 import numba as nb
 import numpy as np
 import matplotlib.pyplot as plt
-import time
+from time import perf_counter as clock
 
 
 @nb.jit(nopython=True, parallel=True)
@@ -71,21 +71,20 @@ def plot_QR():
     qr(A) # run 1 time for numba compilation
 
 
-    time1 = []
+    time1 = np.array([],dtype=float)
     for n in N:
         A = np.random.rand(n, n)
-        start = time.time()
+        t = clock()
         qr(A)
-        end = time.time()
-        time1.append(end - start)
-        print(n, end - start)
+        dt = clock() - t
+        time1 = np.append(time1, dt)
+        print(n, dt)
     
     plt.loglog(N, time1)
 
     plt.xlabel('Matrix size')
     plt.ylabel('Time')
     plt.xticks(N)
-    plt.ylim(bottom=-0.0000001)
     plt.title('Complexity of QR function')
     plt.show()
 
@@ -99,21 +98,21 @@ def plot_lstsq():
     lstsq(A, B) # run 1 time for numba compilation
 
 
-    time1 = []
+    time1 = np.array([],dtype=float)
     for n in N:
         A = np.random.rand(n, n)
         B = np.random.rand(n)
-        start = time.time()
+        t = clock()
         lstsq(A, B)
-        end = time.time()
-        time1.append(end - start)
-        print(n, end - start)
+        dt = clock() - t
+        time1 = np.append(time1, dt)
+        print(n, dt)
     
     plt.loglog(N, time1)
     plt.xlabel('Matrix size')
     plt.ylabel('Time')
     plt.xticks(N)
-    plt.ylim(bottom=-0.0000001)
+
     plt.title('Complexity of lstsq function')
     plt.show()
 
