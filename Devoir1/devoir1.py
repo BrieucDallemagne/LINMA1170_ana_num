@@ -73,10 +73,14 @@ def plot_QR():
 
     time1 = np.array([],dtype=float)
     for n in N:
-        A = np.random.rand(n, n)
-        t = clock()
-        qr(A)
-        dt = clock() - t
+        dt = 0
+        for i in range(5):
+            A = np.random.rand(n, n)
+            t = clock()
+            qr(A)
+            dt += clock() - t
+
+        dt = dt / 5
         time1 = np.append(time1, dt)
         print(n, dt)
     
@@ -100,11 +104,15 @@ def plot_lstsq():
 
     time1 = np.array([],dtype=float)
     for n in N:
-        A = np.random.rand(n, n)
-        B = np.random.rand(n)
-        t = clock()
-        lstsq(A, B)
-        dt = clock() - t
+        dt = 0
+        for i in range(5):
+            A = np.random.rand(n, n)
+            B = np.random.rand(n)
+            t = clock()
+            lstsq(A, B)
+            dt += clock() - t
+
+        dt = dt /5
         time1 = np.append(time1, dt)
         print(n, dt)
     
