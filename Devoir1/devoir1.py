@@ -135,6 +135,7 @@ def rank(A):
     # return true si la matrice A est de rang n
     return np.linalg.matrix_rank(A) == len(A[0])
 
+@nb.jit(nopython=True, parallel=True)
 def B_spline_cubique(x, T, i):
     # x: float
     # T: array de taille n
@@ -151,6 +152,7 @@ def B_spline_cubique(x, T, i):
     else:
         return (T[i+2] - x)**3 / 6
     
+@nb.jit(nopython=True, parallel=True)    
 def noeuds_controle(m, n, t):
     # m: int
     # n: int
@@ -167,6 +169,7 @@ def noeuds_controle(m, n, t):
     return T
 
 
+@nb.jit(nopython=True, parallel=True)
 def generate_B_spline_matrix(m, n, t):
     T = noeuds_controle(m, n, t)
     A = np.zeros((m, n))
@@ -176,14 +179,35 @@ def generate_B_spline_matrix(m, n, t):
     return A
 
 #place les points de data.csv dans un tableau
-data = np.genfromtxt('data.csv', delimiter=',')
+data = np.genfromtxt('data.csv', delimiter=',') # 2D array
+data = data[1:] # remove the first line
+data = data.T # transpose the array
+
 
 def plot_B_spline():
-    # plot B-spline function with the data from data.csv and the B-spline function
+    # plot B-spline function with the data from data.csv and the B-spline function between thos points
     # return None
-    print("FF")
-    return
+    m = len(data)
+    n = 4
+    t = data[:, 0]
+    A = generate_B_spline_matrix(m, n, t)
+    B = data[:, 1]
+    Q, R = qr(A)
+    B = np.dot(Q.T, B)
+    B = B[:n]
+    t = t[:m]
+    print(B)
+    print(t)
+    plt.plot(t, B)
+    plt.scatter(data[:, 0], data[:, 1])
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title('B-spline function')
+    plt.savefig('B_spline.png')
+    plt.show()
 
+
+plot_B_spline()
 
 
 
