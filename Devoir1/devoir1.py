@@ -65,7 +65,7 @@ def lstsq(A, B):
 def plot_QR():
     # plot complexity of function QR for different scale of matrix with a loglog scale
     # return None
-    N = [10, 100,200, 300, 400, 500, 600, 700, 800, 900, 1000]
+    N = [10,20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
 
     A = np.random.rand(2, 2)
     qr(A) # run 1 time for numba compilation
@@ -90,12 +90,13 @@ def plot_QR():
     plt.ylabel('Time')
     plt.xticks(N)
     plt.title('Complexity of QR function')
+    plt.savefig('QR.png')
     plt.show()
 
 def plot_lstsq():
     # plot complexity of function lstsq for different scale of matrix with a loglog scale
     # return None
-    N = [10, 100,200, 300, 400, 500, 600, 700, 800, 900, 1000]
+    N = [10,20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
 
     A = np.random.rand(2, 2)
     B = np.random.rand(2)
@@ -122,8 +123,75 @@ def plot_lstsq():
     plt.xticks(N)
 
     plt.title('Complexity of lstsq function')
+    plt.savefig('lstsq.png')
     plt.show()
 
-plot_QR()
+#plot_QR()
 
-plot_lstsq()
+#plot_lstsq()
+    
+def rank(A):
+    # A: matrice de taille m x n with m >= n
+    # return true si la matrice A est de rang n
+    return np.linalg.matrix_rank(A) == len(A[0])
+
+def B_spline_cubique(x, T, i):
+    # x: float
+    # T: array de taille n
+    # i: int
+    # return float
+    if T[i] <= x < T[i+1]:
+        return (x - T[i])**3 / (6 * (T[i+1] - T[i])) 
+    elif T[i+1] <= x < T[i+2]:
+        return (T[i+2] - x)**3 / (6 * (T[i+2] - T[i+1]))
+    elif x < T[i] or x >= T[i+3]:
+        return 0
+    elif T[i] <= x < T[i+1]:
+        return (T[i+1] - x)**3 / 6
+    else:
+        return (T[i+2] - x)**3 / 6
+    
+def noeuds_controle(m, n, t):
+    # m: int
+    # n: int
+    # t: array de taille m
+    # return array de taille m+n
+    T = np.zeros(m + n)
+    for i in range(m + n):
+        if i < n:
+            T[i] = t[0]
+        elif i >= m:
+            T[i] = t[m-1]
+        else:
+            T[i] = t[i-n]
+    return T
+
+
+def generate_B_spline_matrix(m, n, t):
+    T = noeuds_controle(m, n, t)
+    A = np.zeros((m, n))
+    for i in range(m):
+        for j in range(n):
+            A[i, j] = B_spline_cubique(t[i], T, j)
+    return A
+
+#place les points de data.csv dans un tableau
+data = np.genfromtxt('data.csv', delimiter=',')
+
+def plot_B_spline():
+    # plot B-spline function with the data from data.csv and the B-spline function
+    # return None
+    print("FF")
+    return
+
+
+
+
+
+
+
+
+
+
+
+
