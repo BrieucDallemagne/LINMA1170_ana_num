@@ -134,80 +134,55 @@ def rank(A):
     # A: matrice de taille m x n with m >= n
     # return true si la matrice A est de rang n
     return np.linalg.matrix_rank(A) == len(A[0])
-
-@nb.jit(nopython=True, parallel=True)
-def B_spline_cubique(x, T, i):
-    # x: float
-    # T: array de taille n
-    # i: int
-    # return float
-    if T[i] <= x < T[i+1]:
-        return (x - T[i])**3 / (6 * (T[i+1] - T[i])) 
-    elif T[i+1] <= x < T[i+2]:
-        return (T[i+2] - x)**3 / (6 * (T[i+2] - T[i+1]))
-    elif x < T[i] or x >= T[i+3]:
-        return 0
-    elif T[i] <= x < T[i+1]:
-        return (T[i+1] - x)**3 / 6
-    else:
-        return (T[i+2] - x)**3 / 6
     
-@nb.jit(nopython=True, parallel=True)    
-def noeuds_controle(m, n, t):
-    # m: int
-    # n: int
-    # t: array de taille m
-    # return array de taille m+n
-    T = np.zeros(m + n)
-    for i in range(m + n):
-        if i < n:
-            T[i] = t[0]
-        elif i >= m:
-            T[i] = t[m-1]
-        else:
-            T[i] = t[i-n]
-    return T
-
-
-@nb.jit(nopython=True, parallel=True)
-def generate_B_spline_matrix(m, n, t):
-    T = noeuds_controle(m, n, t)
-    A = np.zeros((m, n))
-    for i in range(m):
-        for j in range(n):
-            A[i, j] = B_spline_cubique(t[i], T, j)
-    return A
-
-#place les points de data.csv dans un tableau
-data = np.genfromtxt('data.csv', delimiter=',') # 2D array
-data = data[1:] # remove the first line
-data = data.T # transpose the array
-
-
-def plot_B_spline():
-    # plot B-spline function with the data from data.csv and the B-spline function between thos points
-    # return None
+def noeuds_controle( n, data):
+    # n: nombre de points de controle
+    # data: array de taille m x 2
+    # return array of size m+n x 2
     m = len(data)
-    n = 4
-    t = data[:, 0]
-    A = generate_B_spline_matrix(m, n, t)
-    B = data[:, 1]
-    Q, R = qr(A)
-    B = np.dot(Q.T, B)
-    B = B[:n]
-    t = t[:m]
-    print(B)
-    print(t)
-    plt.plot(t, B)
-    plt.scatter(data[:, 0], data[:, 1])
-    plt.xlabel('x')
-    plt.ylabel('y')
-    plt.title('B-spline function')
-    plt.savefig('B_spline.png')
+    controle_points = np.zeros((m+n, 2))
+    for i in range(m):
+        controle_points[i] = data[i]
+    for i in range(m, m+n):
+        controle_points[i] = data[m-1]
+    return controle_points
+    
+   
+data = np.genfromtxt('data.csv', delimiter=',')
+
+noeuds = noeuds_controle(3, data)
+print(noeuds)
+    
+def plot_draw_between_points(data, controle_points):
+    # data: array de taille m x 2
+    # controle_points: array de taille m+n x 2
+    # plot the curve between the control points and show the data points
+    # return None
+    X_data = data[:, 0]
+    Y_data = data[:, 1]
+    X_controle = controle_points[:, 0]
+    Y_controle = controle_points[:, 1]
+    plt.plot(X_data, Y_data, 'red', marker='o')
+    plt.plot(X_controle, Y_controle, 'blue', marker='o')
+    plt.scatter(X_controle, Y_controle, color='blue')
     plt.show()
 
 
-plot_B_spline()
+
+
+
+plot_draw_between_points(data, noeuds)
+
+
+
+
+
+
+
+
+
+
+
 
 
 
