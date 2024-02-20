@@ -83,6 +83,29 @@ def control_points(t,T,i,p):
         u += 0.0 if T[i+p+1] == T[i+1] else (T[i+p+1]-t)/(T[i+p+1]-T[i+1]) * control_points(t,T,i+1,p-1)
     return u
 
+def bspline(X,Y,t): 
+
+#
+# -2.1- Definition des noeuds et duplication de 3 premiers points de controle
+#       pour avoir une courbe fermée
+#
+
+  T = range(-3,len(X)+4)
+  X = [*X,*X[0:3]]
+  Y = [*Y,*Y[0:3]]
+
+
+  
+  p = 3; n = len(T)-1  
+  B = np.zeros((n-p,len(t)))  
+  for i in range(0,n-p):
+    B[i,:] = control_points(t,T,i,p) 
+
+    
+  x = X @ B
+  y = Y @ B  
+  return x,y
+
 def find_ti(X,Y):
     # X: array de taille m
     # Y: array de taille m
@@ -204,8 +227,8 @@ m = n - p - 1
 x = np.zeros(m)
 y = np.zeros(m)
 for i in range(m):
-    x[i] = np.dot(datax, control_points(ti,Ti, i, p))
-    y[i] = np.dot(datay, control_points(ti,Ti, i, p))
+    x[i] = np.dot(datax, bspline(datax, datay, Ti[i])[0])
+    y[i] = np.dot(datay, bspline(datax, datay, Ti[i])[1])
 
 plot_draw_between_points(datax, datay, x, y)
 
