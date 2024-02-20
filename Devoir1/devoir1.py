@@ -34,6 +34,8 @@ def  qr(A):
             Q[:, i] = Q[:, i] - R[j, i] * Q[:, j]
 
         R[i, i] = norme(Q[:, i])
+        if R[i, i] == 0:
+            Q[:, i] /= R[i, i]
         Q[:, i] = Q[:, i] / R[i, i]
 
     Q = -Q
@@ -61,6 +63,50 @@ def lstsq(A, B):
             sum += (A[i, j] - diag_B[i, i])**2
 
     return np.sqrt(sum)
+
+def rank(A):
+    # A: matrice de taille m x n with m >= n
+    # return true si la matrice A est de rang n
+    Q, R = qr(A)
+    M, N = A.shape
+    for i in range(N):
+        if R[i, i] == 0:
+            return False
+    return True
+    
+def control_points(t,T,i,p):
+
+    if p == 0:
+        return (T[i] <= t)*(t < T[i+1])
+    else:
+        u  = 0.0 if T[i+p ]  == T[i]   else (t-T[i])/(T[i+p]- T[i]) * control_points(t,T,i,p-1)
+        u += 0.0 if T[i+p+1] == T[i+1] else (T[i+p+1]-t)/(T[i+p+1]-T[i+1]) * control_points(t,T,i+1,p-1)
+    return u
+
+def find_ti(X,Y):
+    # X: array de taille m
+    # Y: array de taille m
+    # return t array of size m who's an approximation of X,Y on [0;1] interval
+    m = len(X)
+    t = np.zeros(m)
+    t[0] = 0
+    for i in range(1, m):
+        t[i] = t[i-1] + np.sqrt((X[i] - X[i-1])**2 + (Y[i] - Y[i-1])**2)
+    t = t / t[-1]
+    return t
+
+def find_TI(ti):
+    m = len(ti)
+    T = np.zeros(m+4)
+    T[0] = T[1] = T[2] = T[3] = 0
+    T[m] = T[m+1] = T[m+2] = T[m+3] = 1
+    for j in range(2, m-3):
+        i = int(j)
+        alpha = j - i
+        T[j+3] = (1 - alpha) * ti[i-1] + alpha * ti[i]
+    return T
+
+
 
 def plot_QR():
     # plot complexity of function QR for different scale of matrix with a loglog scale
@@ -126,71 +172,40 @@ def plot_lstsq():
     plt.savefig('lstsq.png')
     plt.show()
 
-#plot_QR()
 
-#plot_lstsq()
-    
-def rank(A):
-    # A: matrice de taille m x n with m >= n
-    # return true si la matrice A est de rang n
-    return np.linalg.matrix_rank(A) == len(A[0])
-    
-def noeuds_controle( n, data):
-    # n: nombre de points de controle
-    # data: array de taille m x 2
-    # return array of size m+n x 2
-    m = len(data)
-    controle_points = np.zeros((m+n, 2))
-    for i in range(m):
-        controle_points[i] = data[i]
-    for i in range(m, m+n):
-        controle_points[i] = data[m-1]
-    return controle_points
-    
-   
-data = np.genfromtxt('data.csv', delimiter=',')
 
-noeuds = noeuds_controle(3, data)
-print(noeuds)
+
     
-def plot_draw_between_points(data, controle_points):
+def plot_draw_between_points( datax, datay, noeudsx, noeudsy):
     # data: array de taille m x 2
     # controle_points: array de taille m+n x 2
     # plot the curve between the control points and show the data points
     # return None
-    X_data = data[:, 0]
-    Y_data = data[:, 1]
-    X_controle = controle_points[:, 0]
-    Y_controle = controle_points[:, 1]
-    plt.plot(X_data, Y_data, 'red', marker='o')
-    plt.plot(X_controle, Y_controle, 'blue', marker='o')
-    plt.scatter(X_controle, Y_controle, color='blue')
+    plt.scatter(noeudsx, noeudsy, label='control points')
+    plt.axis("equal")
+    plt.legend()
+    plt.gca().invert_yaxis()
     plt.show()
 
+#plot_QR()
+
+#plot_lstsq()
 
 
+data = np.genfromtxt('data.csv', delimiter=',')
+datax = data[:, 0]
+datay = data[:, 1]
+    
+ti = find_ti(datax, datay)
+Ti = find_TI(ti)
+n = len(datax)
+p = 3
+m = n - p - 1
+x = np.zeros(m)
+y = np.zeros(m)
+for i in range(m):
+    x[i] = np.dot(datax, control_points(ti,Ti, i, p))
+    y[i] = np.dot(datay, control_points(ti,Ti, i, p))
 
-
-plot_draw_between_points(data, noeuds)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+plot_draw_between_points(datax, datay, x, y)
 
