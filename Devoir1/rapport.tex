@@ -1,0 +1,54 @@
+\documentclass[11pt]{article}
+
+\usepackage{graphicx}
+\usepackage{amsmath} 
+
+\title{LINMA1170 rapport Devoir 1}
+\author{Dallemagne Brieuc - NOMA 77122100}
+\date{23/02/2024} 
+
+\begin{document}
+
+\maketitle
+
+\section{Questions théoriques}
+
+\subsection{Question 1}
+
+Démonstration : Soit \( X \in \mathbb{R}^{n \times p} \).
+On a \( J(X) = \lVert AX - B \rVert^2_F = \text{tr}((AX - B)^T (AX - B)) =
+\text{tr}(X^T A^T AX - X^T A^T B - B^T A X^T + B^T B) = \text{tr}(X^T A^T AX - 2X^T A^T B + B^T B) \). En dérivant \( J(X) \) par rapport à \( X \), 
+on obtient
+\[ \nabla J(X) = 2A^T AX - 2A^T B. \]
+Donc \( X \) est solution du problème des moindres carrés si et seulement si \( \nabla J(X) = 0 \), c'est-à-dire \( A^T AX = A^T B \). On a donc bien montré que \( X \) est solution du problème des moindres carrés si l'équation normale \( A^T AX = A^T B \) est vérifiée. 
+On montre ensuite que ce système admet toujours au moins une solution et qu'elle est unique si \( \text{rang}(A) = n \). 
+\newline
+Soit \( X \) une solution du problème des moindres carrés. On a alors \( A^T AX = A^T B \). Si \( \text{rang}(A) = n \), alors \( A \) est de rang maximal, donc \( A \) est de plein rang. Donc \( A \) est inversible. On a alors \( X = (A^T A)^{-1}A^T B \). Donc \( X \) est unique. 
+
+\subsection{Question 2}
+
+Démonstration : On a \( A^T AX = A^T B \). On peut alors écrire \( A = QR \), où \( Q \) est une matrice orthogonale et \( R \) est une matrice triangulaire supérieure.
+On a alors \( A^T A = R^T Q^T QR = R^T R \). On a alors \( A^T AX = A^T B \) si et seulement si \( R^T RX = R^T Q^T B \) si et seulement si \( RX = Q^T B \). 
+On a alors un système triangulaire supérieur à résoudre. On peut alors résoudre ce système par substitution arrière. 
+
+\subsection{Question 3}
+
+
+
+\section{Évaluation de la complexité temporelle}
+Description de l'expérience numérique pour évaluer la complexité temporelle de la factorisation QR appliquée à des matrices aléatoires de grande taille.
+
+\section{Illustration graphique de l'approximation}
+Illustration graphique de quelques résultats de l'approximation appliquée à des suites de points dans différents cas de figure.
+
+\section{Conditions pour une courbe périodique}
+Bonus : Explication des conditions nécessaires pour que la courbe soit périodique, illustrées par des exemples.
+
+\section{Conclusion}
+Conclusion du rapport.
+
+% Bibliographie
+%\bibliographystyle{plain}
+%\bibliography{bibliography} % Nom du fichier .bib contenant les références
+
+\end{document}
