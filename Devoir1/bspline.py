@@ -8,7 +8,7 @@ import matplotlib
 def norme(V):
     # retourne la norme euclidienne d'un vecteur V
     squared_sum = 0
-    for i in nb.prange(len(V)):
+    for i in range(len(V)):
         squared_sum += V[i] ** 2
     euclidean_norm = np.sqrt(squared_sum)
     return euclidean_norm
@@ -19,30 +19,11 @@ def transpose(A):
     m = len(A)
     n = len(A[0])
     B = np.zeros((n,m))
-    for i in nb.prange(n):
-        for j in nb.prange(m):
+    for i in range(n):
+        for j in range(m):
             B[i,j] = A[j,i]
     return B
 
-@nb.jit(nopython=True)
-def dot_matrix(A, B):
-    # A: matrice de taille m x n
-    # B: matrice de taille n x p
-    # return C: matrice de taille m x p
-    if len(A[0]) != len(B):
-        return None
-    
-    result = []
-    for i in nb.prange(len(A)):
-        row = []
-        for j in nb.prange(len(B[0])):
-            sum = 0
-            for k in nb.prange(len(B)):
-                sum += A[i][k] * B[k][j]
-            row.append(sum)
-        result.append(row)
-    
-    return result
 
 
 @nb.jit(nopython=True)
@@ -54,58 +35,48 @@ def  qr(A):
     # return Q, R
     M, N = A.shape
     Q = np.zeros((M, N))
-    for i in nb.prange(N):
+    for i in range(N):
         Q[:, i] = A[:, i]
     R = np.zeros((N, N))
-    for i in nb.prange(N):
-        for j in nb.prange(i):
+    for i in range(N):
+        for j in range(i):
             V1 = Q[:, j]
             V2 = Q[:, i]
-            for k in nb.prange(M):
+            for k in range(M):
                 R[j, i] += V1[k] * V2[k]
             Q[:, i] = Q[:, i] - R[j, i] * Q[:, j]
 
         R[i, i] = norme(Q[:, i])
         if R[i, i] == 0:
-            Q[:, i] /= R[i, i]
-        Q[:, i] = Q[:, i] / R[i, i]
+            continue
+        else:
+            Q[:, i] = Q[:, i] / R[i, i]
 
     Q = -Q
     R = -R
 
     return Q, R
 
-@nb.jit(nopython=True)
-def multiply(matrix, vector):
-    # mumtiply a matrix by a vector
-
-    result = [0] * len(matrix)
-
-    for i in nb.prange(len(matrix)):
-        for j in nb.prange(len(vector)):
-            result[i] += matrix[i][j] * vector[j]
-
-    return result
-
-
-
-@nb.jit(nopython=True)
 def lstsq(A, B):
     # A: matrice de taille m x n
     # B: matrice de taille m x n
     # return X
     M, N = A.shape
+    Y,Z = B.shape
     Q, R = qr(A)
-    X = np.zeros((N, N))
-    for i in nb.prange(N):
-        QTB = multiply(transpose(Q), B[:, i])
-        x = np.zeros(N)
-        for j in nb.prange(N - 1, -1, -1):
-            x[j] = QTB[j]
-            for k in nb.prange(j + 1, N):
-                x[j] -= R[j, k] * x[k]
-            x[j] /= R[j, j]
-        X[:, i] = x
+    print(Q)
+    print(R)
+    X = np.zeros((N, Z))
+    QTB = np.dot(transpose(Q), B)
+    for k in range(Z):
+        for i in range(N-1, -1, -1):
+            sum = 0
+            for j in range(i+1, N):
+                sum += R[i][ j] * X[j][  k]
+            if R[i][i] == 0:
+                continue
+            X[i][  k] = (QTB[i][  k] - sum) / R[i][  i]
+
     return X
 
 
@@ -241,23 +212,22 @@ def plot_lstsq():
     plt.savefig('lstsq.png')
     plt.show()
     
-def plot_Bspline(B,X, Y, x,y):
-    fig = plt.figure("Approximation avec des B-splines")
-    plt.plot(X,Y,'.r',markersize=10, label='Points')
-    plt.plot([*X,X[0]],[*Y,Y[0]],'--r')
-    plt.plot(x,y,'-b')
-    x = len(x)
-    plt.axis("equal"); 
-    plt.gca().invert_yaxis()
+def plot_Bspline(X, Y, x,y,t):
+    # X: array of size m
+    # Y: array of size m
+    # x: array of size m
+    # y: array of size m
+    # t: array of size m
+    # return None
+    plt.plot(X, Y, 'ro', label = 'Data')
+    plt.plot(x, y, 'b-', label = 'Least square')
+    plt.xlabel('X')
+    plt.ylabel('Y')
+    plt.title('B-spline')
+    plt.legend()
+    plt.savefig('Bspline.png')
     plt.show()
-    plt.savefig('Bspline_with' + str(x) + 'points.png')
 
-
-def test_QR():
-    A = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 8]])
-    Q, R = qr(A)
-    np.testing.assert_allclose(dot_matrix(Q,R), A)
-    print("Test QR passed")
 
 
 
@@ -266,17 +236,27 @@ def test_QR():
 
 #plot_lstsq()
 
-data = np.genfromtxt('data.csv', delimiter=',')
-X = data[:, 0]
-Y = data[:, 1]
+data = np.genfromtxt('data2.csv', delimiter=',')
+X = [1,1,0]
+Y = [0,1,1]
 ti = find_ti(X,Y)
+print(ti)
 T = find_TI(ti)
+print(T)
 A = create_A(ti, T, 3)
+print(A)
 B = create_B(X,Y,T,3)
-X, Y = lstsq(A, B)
-t = np.linspace(0,len(X),len(X)*100 + 1)
-x,y = bspline(t,T,3)
-plot_Bspline(B,X,Y,x,y)
+print(B)
+print(A)
+print(B)
+Xlst = lstsq(A, B)
+print(Xlst)
+x = Xlst [:, 0]
+y = Xlst [:, 1]
+print(x)
+print(y)
+plot_Bspline(X,Y,x,y,ti)
+
 
 
 
