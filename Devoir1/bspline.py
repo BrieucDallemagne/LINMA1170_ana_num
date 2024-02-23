@@ -49,8 +49,8 @@ def  qr(A):
         R[i, i] = norme(Q[:, i])
         if R[i, i] == 0:
             continue
-        else:
-            Q[:, i] = Q[:, i] / R[i, i]
+
+        Q[:, i] = Q[:, i] / R[i, i]
 
     Q = -Q
     R = -R
@@ -64,8 +64,6 @@ def lstsq(A, B):
     M, N = A.shape
     Y,Z = B.shape
     Q, R = qr(A)
-    print(Q)
-    print(R)
     X = np.zeros((N, Z))
     QTB = np.dot(transpose(Q), B)
     for k in range(Z):
@@ -90,9 +88,13 @@ def rank(A):
         if R[i, i] == 0:
             return False
     return True
-    
-def bspline(t,T,i,p):
 
+
+def bspline(t,T,i,p):
+    if (i >= len(T) - p - 1) :
+        return 0.0
+    if (t == 1 and i == len(T) - 4 - 1) :
+        return 1.0
     if p == 0:
         return (T[i] <= t)*(t < T[i+1])
     else:
@@ -102,18 +104,16 @@ def bspline(t,T,i,p):
 
 def create_A(t,T,p):
     n = len(T) - 1
-    B = np.zeros((n-p,len(t)))
+    A = np.zeros((n-p,len(t)))
     for i in range(0,n-p):
-        B[i,:] = bspline(t,T,i,p)
-    return B
+        for j in range(len(t)):
+            A[i,j] = bspline(t[j],T,i,p)
 
-def create_B(X,Y,T,p):
-    n = len(T) - 1
-    B = np.zeros((n-p,2))
-    for i in range(0,n-p):
-        B[i,0] = X[i]
-        B[i,1] = Y[i]
-    return B
+    A = transpose(A)
+    A[-1,-1] = 1
+
+    return A
+
 
 
 
@@ -129,27 +129,29 @@ def find_ti(X,Y):
     t = t / t[-1]
     return t
 
-def find_TI(ti):
+def find_TI(n,ti):
     m = len(ti)
-    T = np.zeros(m+4)
-    T[0] = T[1] = T[2] = T[3] = 0
-    T[m] = T[m+1] = T[m+2] = T[m+3] = 1
-    for j in range(2, m-3):
-        i = int(j)
-        alpha = j - i
-        T[j+3] = (1 - alpha) * ti[i-1] + alpha * ti[i]
+    d = m / (n - 3)
+    T = [0, 0, 0, 0]  
+    for j in range(1, n - 3):
+        i = int(np.floor(j * d))
+        alpha = j * d - i
+        T.append((1 - alpha) * ti[i - 1] + alpha * ti[i])
+
+    T.extend([1, 1, 1, 1])  
     return T
 
 def plot_QR():
     # plot complexity of function QR for different scale of matrix with a loglog scale
     # return None
     N = [10,20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+    M = 1000
 
     A = np.random.rand(2, 2)
     qr(A) # run 1 time for numba compilation
 
     def ref_fun(N):
-        return [x**3/(3*10**8) for x in N]
+        return [x**2/(3*10**5) for x in N]
     
     fun = ref_fun(N)
 
@@ -158,17 +160,17 @@ def plot_QR():
     for n in N:
         dt = 0
         for i in range(5):
-            A = np.random.rand(n, n)
+            A = np.random.rand(M, n)
             t = clock()
             qr(A)
             dt += clock() - t
 
         dt = dt / 5
         time1 = np.append(time1, dt)
-        print(n, dt)
+        #print(n, dt)
     
     plt.loglog(N, time1, label = 'QR')
-    plt.loglog(N, fun, 'r--', label = '0(n^3)')
+    plt.loglog(N, fun, 'r--', label = '0(n^2.m)')
 
     plt.xlabel('Matrix size')
     plt.ylabel('Time')
@@ -179,14 +181,20 @@ def plot_QR():
 
     plt.show()
 
+
 def plot_lstsq():
     # plot complexity of function lstsq for different scale of matrix with a loglog scale
     # return None
     N = [10,20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
 
     A = np.random.rand(2, 2)
-    B = np.random.rand(2)
+    B = np.random.rand(2, 1)
     lstsq(A, B) # run 1 time for numba compilation
+
+    def ref_fun(N):
+        return [x**2/(10**6) for x in N]
+    
+    fun = ref_fun(N)
 
 
     time1 = np.array([],dtype=float)
@@ -194,16 +202,17 @@ def plot_lstsq():
         dt = 0
         for i in range(5):
             A = np.random.rand(n, n)
-            B = np.random.rand(n)
+            B = np.random.rand(n, 2)
             t = clock()
             lstsq(A, B)
             dt += clock() - t
 
         dt = dt /5
         time1 = np.append(time1, dt)
-        print(n, dt)
+        #print(n, dt)
     
     plt.loglog(N, time1)
+    plt.loglog(N, fun, 'r--', label = '0(n^2)')
     plt.xlabel('Matrix size')
     plt.ylabel('Time')
     plt.xticks(N)
@@ -211,20 +220,22 @@ def plot_lstsq():
     plt.title('Complexity of lstsq function')
     plt.savefig('lstsq.png')
     plt.show()
+
+
     
-def plot_Bspline(X, Y, x,y,t):
-    # X: array of size m
-    # Y: array of size m
-    # x: array of size m
-    # y: array of size m
-    # t: array of size m
+def plot_Bspline(X, Y, x,y,x_val, y_val):
+
     # return None
-    plt.plot(X, Y, 'ro', label = 'Data')
-    plt.plot(x, y, 'b-', label = 'Least square')
+    plt.plot(X, Y, 'ro', label = 'data', markersize = 2)
+
+    plt.plot(x, y, 'bo', label = 'Least square')
+    plt.plot(x_val, y_val, 'b-', label = 'B-spline avec {} points'.format(len(x)))
+    
     plt.xlabel('X')
     plt.ylabel('Y')
     plt.title('B-spline')
     plt.legend()
+    plt.gca().invert_yaxis()
     plt.savefig('Bspline.png')
     plt.show()
 
@@ -232,35 +243,38 @@ def plot_Bspline(X, Y, x,y,t):
 
 
 
-#plot_QR()
 
-#plot_lstsq()
+data = np.genfromtxt('data.csv', delimiter=',')
 
-data = np.genfromtxt('data2.csv', delimiter=',')
-X = [1,1,0]
-Y = [0,1,1]
-ti = find_ti(X,Y)
-print(ti)
-T = find_TI(ti)
-print(T)
-A = create_A(ti, T, 3)
-print(A)
-B = create_B(X,Y,T,3)
-print(B)
-print(A)
-print(B)
-Xlst = lstsq(A, B)
-print(Xlst)
-x = Xlst [:, 0]
-y = Xlst [:, 1]
-print(x)
-print(y)
-plot_Bspline(X,Y,x,y,ti)
+def main(data,N):
+    X = data[:,0]
+    Y = data[:,1]
+    ti = find_ti(X,Y)
+    #print(ti)
+    T = find_TI(N,ti)
+    #print(T)
+    A = create_A(ti, T, 3)
+    #print(A)
+    B = np.array([X,Y]).T
+    Xlst = lstsq(A, B)
+    #print(Xlst)
+    x = Xlst [:, 0]
+    y = Xlst [:, 1]
+    x_val = np.zeros(len(ti))
+    y_val = np.zeros(len(ti))
+    for i in range(len(ti)):
+        x_val[i] = sum([bspline(ti[i],T,j,3)*x[j] for j in range(len(x))])
+        y_val[i] = sum([bspline(ti[i],T,j,3)*y[j] for j in range(len(y))])
+
+    #plot_QR()
+    #plot_lstsq()
+    plot_Bspline(X,Y,x,y, x_val, y_val)
+    return None 
+
+main(data, 40)
 
 
 
 
-
-#t,T, Bspline,leastsq,plot
 
 
