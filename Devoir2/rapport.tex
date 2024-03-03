@@ -1,3 +1,17 @@
+
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{graphicx}
+
+\title{Devoir 2}
+\author{Dallemagne Brieuc}
+\date{28/02/2024}
+
+\begin{document}
+
+
 \section{énoncé}
 Dans le devoir 1, vous avez utilisé la décomposition QR pour résoudre numériquement le problème
 des moindres carrés. Une autre façon est de résoudre le système linéaire des équations normales
@@ -41,6 +55,40 @@ Pour montrer le conditionnement numériquement, on peut utiliser une implémenta
     print(np.dot(A, x) - b)
     print(np.linalg.cond(A))
 \end{lstlisting}
+2 - L'algorithme de décomposition LU (sans pivotage) est implémenté comme suit:
+\begin{lstlisting}
+    def LU_decomposition(A):
+        n = len(A)
+        L = np.zeros((n, n))
+        U = np.zeros((n, n))
+        for i in range(n):
+            L[i][i] = 1
+            for j in range(i, n):
+                U[i][j] = A[i][j] - np.dot(L[i][0:i], U[0:i][j])
+            for j in range(i+1, n):
+                L[j][i] = (A[j][i] - np.dot(L[j][0:i], U[0:i][i]))/U[i][i]
+        return L, U
+\end{lstlisting}
+La complexité de l'algorithme de décomposition LU est $O(n^3)$.
+L'algorithme de décomposition LU est facilement parallélisable car les calculs de chaque ligne de la matrice L et U sont indépendants.
+3 - Le pivotage n'est pas nécessaire lorsque tous les mineurs principaux de A sont positifs. Ce n'est pas le cas pour les équations normales.
+4 - Pour résoudre le problème des moindres carrés, on peut exploiter une propriété des équations normales pour accélérer la décomposition LU.
+L'algorithme de décomposition LU avec exploitation de la propriété des équations normales est implémenté comme suit:
+\begin{lstlisting}
+    def LU_decomposition(A):
+        n = len(A)
+        L = np.zeros((n, n))
+        U = np.zeros((n, n))
+        for i in range(n):
+            L[i][i] = 1
+            for j in range(i, n):
+                U[i][j] = A[i][j] - np.dot(L[i][0:i], U[0:i][j])
+            for j in range(i+1, n):
+                L[j][i] = (A[j][i] - np.dot(L[j][0:i], U[0:i][i]))/U[i][i]
+        return L, U
+\end{lstlisting}
+Le gain en termes d'opérations arithmétiques est de $O(n^3)$.
+\end{document}
 
 
 
