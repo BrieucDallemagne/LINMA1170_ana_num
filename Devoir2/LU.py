@@ -11,7 +11,7 @@ def LU_decomposition(A):
     U = np.zeros((n, n))    
 
 
-    for k in range(n):
+    for k in nb.prange(n):
         U[k][k] = A[k][k]
         for i in nb.prange(k + 1, n):
             L[i][k] = A[i][k] / U[k][k]
@@ -44,10 +44,10 @@ def Cholesky_decomposition(A):
     n = len(A)
     L = np.zeros((n, n))
 
-    for i in range(n):
-        for j in range(i + 1):
+    for i in nb.prange(n):
+        for j in nb.prange(i + 1):
             s = 0
-            for k in range(j):
+            for k in nb.prange(j):
                 s += L[i][k] * L[j][k]
             if i == j:
                 L[i][j] = np.sqrt(A[i][i] - s)
@@ -150,4 +150,4 @@ def hist_rapport_LU_cholesky():
     #plt.show()
 
 #plot_LU_decomposition()
-#hist_rapport_LU_cholesky()
+hist_rapport_LU_cholesky()
