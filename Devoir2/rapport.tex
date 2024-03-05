@@ -1,9 +1,10 @@
-
 \documentclass[12pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath}
 \usepackage{listings}
 \usepackage{graphicx}
+\usepackage{geometry}
+\geometry{margin=3cm}
 
 \title{Devoir 2}
 \author{Dallemagne Brieuc}
@@ -12,25 +13,7 @@
 \begin{document}
 
 
-\section{énoncé}
-Dans le devoir 1, vous avez utilisé la décomposition QR pour résoudre numériquement le problème
-des moindres carrés. Une autre façon est de résoudre le système linéaire des équations normales
-A.T Ax = A.T B (1)
-L’algorithme le plus indiqué pour résoudre un système linéaire est la décomposition LU, qui factorise
-la matrice A en un produit d’une matrice triangulaire inférieure L et une matrice triangulaire
-supérieure U (quelles seront leurs dimensions dans ce cas-ci ?). On va en profiter pour analyser le
-conditionnement du problème des moindres carrés.
-1. On s’intéresse au conditionnement du problème des moindres carrés. Que signifie le condi-
-tionnement, et comment est défini le nombre de conditionnement κ ? Quel est le conditonne-
-ment par rapport aux inputs A et b ? Montrez-le numériquement ; vous pouvez utiliser une
-implémentation de Numpy et la supposer stable.
-2. Implémentez l’algorithme de décomposition LU (sans pivotage). Quelle est sa complexité ?
-Cet algorithme est-il facilement parallélisable ?
-3. Démontrez que le pivotage n’est pas nécessaire lorsque tous les mineurs principaux de A
-sont positifs. Est-ce le cas pour les équations normales ?
-4. Pour résoudre le problème des moindres carrés, vous pouvez exploiter une propriété des
-équations normales pour accélérer la décomposition LU. De quel algorithme parle-t-on, et
-quel est le gain en termes d’opérations arithmétiques ? Montrez numériquement ce gain.
+\title{Devoir2 - Décomposition LU et conditionnement}
 
 \section{Réponse}
 1 - Le conditionnement d'un problème est une mesure de la sensibilité de la solution du problème par rapport à de petits 
@@ -46,15 +29,9 @@ Le conditionnement par rapport aux inputs A et b est défini comme suit:
 \end{equation}
 où $||A||$ est la norme de la matrice A et $||A^{-1}||$ est la norme de la matrice inverse de A.
 Pour montrer le conditionnement numériquement, on peut utiliser une implémentation de Numpy et la supposer stable.
-\begin{lstlisting}
-    import numpy as np
-    A = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-    b = np.array([1, 2, 3])
-    x = np.linalg.solve(A, b)
-    print(x)
-    print(np.dot(A, x) - b)
-    print(np.linalg.cond(A))
-\end{lstlisting}
+
+
+
 2 - L'algorithme de décomposition LU (sans pivotage) est implémenté comme suit:
 \begin{lstlisting}
     def LU_decomposition(A):
@@ -71,6 +48,7 @@ Pour montrer le conditionnement numériquement, on peut utiliser une implémenta
 \end{lstlisting}
 La complexité de l'algorithme de décomposition LU est $O(n^3)$.
 L'algorithme de décomposition LU est facilement parallélisable car les calculs de chaque ligne de la matrice L et U sont indépendants.
+\newpage
 3 - Le pivotage n'est pas nécessaire lorsque tous les mineurs principaux de A sont positifs. Ce n'est pas le cas pour les équations normales.
 4 - Pour résoudre le problème des moindres carrés, on peut exploiter une propriété des équations normales pour accélérer la décomposition LU.
 L'algorithme de décomposition LU avec exploitation de la propriété des équations normales est implémenté comme suit:

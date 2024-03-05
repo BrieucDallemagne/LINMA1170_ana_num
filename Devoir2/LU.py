@@ -39,6 +39,23 @@ def LU_decomposition2(A):
 
     return L, U
 
+@nb.jit(nopython=True, parallel=True)
+def Cholesky_decomposition(A):
+    n = len(A)
+    L = np.zeros((n, n))
+
+    for i in range(n):
+        for j in range(i + 1):
+            s = 0
+            for k in range(j):
+                s += L[i][k] * L[j][k]
+            if i == j:
+                L[i][j] = np.sqrt(A[i][i] - s)
+            else:
+                L[i][j] = (A[i][j] - s) / L[j][j]
+
+    return L
+
 
 
 def plot_LU_decomposition():
@@ -57,7 +74,7 @@ def plot_LU_decomposition():
 
 
     time1 = np.array([],dtype=float)
-    time2 = np.array([],dtype=float)
+    #time2 = np.array([],dtype=float)
     for n in N:
         dt = 0
         dt2 = 0
@@ -67,19 +84,19 @@ def plot_LU_decomposition():
             LU_decomposition(A)
             dt += clock() - t
 
-            B = np.random.rand(n, n)
-            t2 = clock()
-            LU_decomposition2(B)
-            dt2 += clock() - t2
+            #B = np.random.rand(n, n)
+            #t2 = clock()
+            #LU_decomposition2(B)
+            #dt2 += clock() - t2
 
-        dt2 = dt2 / 5
+        #dt2 = dt2 / 5
         dt = dt / 5
-        time2 = np.append(time2, dt2)
+        #time2 = np.append(time2, dt2)
         time1 = np.append(time1, dt)
         #print(n, dt)
     
     plt.loglog(N, time1, label = 'LU with numba')
-    plt.loglog(N, time2, label = 'LU without numba')
+    #plt.loglog(N, time2, label = 'LU without numba')
     plt.loglog(N, fun, 'r--', label = '0(n^3)')
 
     plt.xlabel('Matrix size')
@@ -92,6 +109,45 @@ def plot_LU_decomposition():
     plt.show()
 
 
-plot_LU_decomposition()
 
 
+def hist_rapport_LU_cholesky():
+
+    A = np.random.rand(2, 2)
+    LU_decomposition(A) # run 1 time for numba compilation
+    Cholesky_decomposition(A) # run 1 time for numba compilation
+
+    rapport = np.array([],dtype=float)
+
+    for i in range(3000):
+        n = np.random.randint(100, 1000)
+        A = np.random.rand(n, n)
+        t1 = clock()
+        LU_decomposition(A)
+        dt1 = clock() - t1
+
+        B = np.random.rand(n, n)
+        t2 = clock()
+        Cholesky_decomposition(B)
+        dt2 = clock() - t2
+
+        rapport = np.append(rapport, int(round(dt1/dt2, 0)))
+
+    lst = [i for i in range(10)]
+    for i in rapport:
+        if i < 10:
+            lst[int(i)] += 1
+
+    # Plot histogram
+    plt.bar([str(i) for i in range(10)], lst)
+    plt.xlabel('Rapport')
+    plt.ylabel('Occurence')
+    plt.title('occurence of each rounded rapport of LU/cholesky')
+    plt.savefig('rapport_LU_cholesky.png')
+
+
+
+    #plt.show()
+
+#plot_LU_decomposition()
+#hist_rapport_LU_cholesky()
