@@ -59,22 +59,22 @@ def Cholesky_decomposition(A):
 
 
 def plot_LU_decomposition():
-        # plot complexity of function QR for different scale of matrix with a loglog scale
+    # plot complexity of function QR for different scale of matrix with a loglog scale
     # return None
-    N = [10,20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+    N = [100,150,200,250,300,350,400,450,500,550,600,650,700,750,800,850,900,950,1000]
 
     A = np.random.rand(2, 2)
     LU_decomposition(A) # run 1 time for numba compilation
     LU_decomposition2(A) # run 1 time for numba compilation
 
     def ref_fun(N):
-        return [x**3/(5*10**8) for x in N]
+        return [x**3/(5*10**9) for x in N]
     
     fun = ref_fun(N)
 
 
     time1 = np.array([],dtype=float)
-    #time2 = np.array([],dtype=float)
+    time2 = np.array([],dtype=float)
     for n in N:
         dt = 0
         dt2 = 0
@@ -84,70 +84,76 @@ def plot_LU_decomposition():
             LU_decomposition(A)
             dt += clock() - t
 
-            #B = np.random.rand(n, n)
-            #t2 = clock()
-            #LU_decomposition2(B)
-            #dt2 += clock() - t2
+            B = np.random.rand(n, n)
+            t2 = clock()
+            LU_decomposition2(B)
+            dt2 += clock() - t2
 
-        #dt2 = dt2 / 5
+        dt2 = dt2 / 5
         dt = dt / 5
-        #time2 = np.append(time2, dt2)
+        time2 = np.append(time2, dt2)
         time1 = np.append(time1, dt)
         #print(n, dt)
     
-    plt.loglog(N, time1, label = 'LU with numba')
-    #plt.loglog(N, time2, label = 'LU without numba')
+    plt.loglog(N, time1, label = 'LU with parallel ')
+    plt.loglog(N, time2, label = 'LU without parallel')
     plt.loglog(N, fun, 'r--', label = '0(n^3)')
 
     plt.xlabel('Matrix size')
     plt.ylabel('Time')
     plt.xticks(N)
+    plt.grid()
     plt.title('Complexity of LU function')
     plt.legend()
-    plt.savefig('LU.png')
+    plt.savefig('LU.pdf')
 
     plt.show()
 
 
 
 
-def hist_rapport_LU_cholesky():
+def LU_cholesky():
+
+    N = N = [100,150,200,250,300,350,400,450,500,550,600,650,700,750,800,850,900,950,1000]
 
     A = np.random.rand(2, 2)
     LU_decomposition(A) # run 1 time for numba compilation
     Cholesky_decomposition(A) # run 1 time for numba compilation
 
-    rapport = np.array([],dtype=float)
+    time1 = np.array([],dtype=float)
+    time2 = np.array([],dtype=float)
+    for n in N:
+        dt = 0
+        dt2 = 0
+        for i in range(5):
+            A = np.random.rand(n, n)
+            t = clock()
+            LU_decomposition(A)
+            dt += clock() - t
 
-    for i in range(3000):
-        n = np.random.randint(100, 1000)
-        A = np.random.rand(n, n)
-        t1 = clock()
-        LU_decomposition(A)
-        dt1 = clock() - t1
+            B = np.random.rand(n, n)
+            t2 = clock()
+            Cholesky_decomposition(B)
+            dt2 += clock() - t2
 
-        B = np.random.rand(n, n)
-        t2 = clock()
-        Cholesky_decomposition(B)
-        dt2 = clock() - t2
+        dt2 = dt2 / 5
+        dt = dt / 5
+        time2 = np.append(time2, dt2)
+        time1 = np.append(time1, dt)
+        #print(n, dt)
+    
+    plt.loglog(N, time1, label = 'LU ')
+    plt.loglog(N, time2, label = 'Cholesky')
+    plt.grid()
 
-        rapport = np.append(rapport, int(round(dt1/dt2, 0)))
+    plt.xlabel('Matrix size')
+    plt.ylabel('Time')
+    plt.xticks(N)
+    plt.title('Complexity of LU and Cholesky function')
+    plt.legend()
+    plt.savefig('LU_cholevsky.pdf')
 
-    lst = [i for i in range(10)]
-    for i in rapport:
-        if i < 10:
-            lst[int(i)] += 1
+    plt.show()
 
-    # Plot histogram
-    plt.bar([str(i) for i in range(10)], lst)
-    plt.xlabel('Rapport')
-    plt.ylabel('Occurence')
-    plt.title('occurence of each rounded rapport of LU/cholesky')
-    plt.savefig('rapport_LU_cholesky.png')
-
-
-
-    #plt.show()
-
-#plot_LU_decomposition()
-hist_rapport_LU_cholesky()
+plot_LU_decomposition()
+#LU_cholesky()
