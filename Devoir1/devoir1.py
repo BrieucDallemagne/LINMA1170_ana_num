@@ -21,8 +21,6 @@ def transpose(A):
             B[i,j] = A[j,i]
     return B
 
-
-
 @nb.jit(nopython=True)
 def  qr(A):
     #qui renvoie deux matrices Q et R correspondant à la décomposition QR réduite de A
