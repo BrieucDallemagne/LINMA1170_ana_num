@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import soundfile as sf
 
-filename = 'elton.wav'
+filename = 'a.wav'
 y, sr = librosa.load(filename)
 
 n_fft = 2048
@@ -13,7 +13,7 @@ D = librosa.stft(y, n_fft=n_fft, hop_length=hop_length)
 magnitude = np.abs(D)
 U, S, Vt = np.linalg.svd(magnitude, full_matrices=False)
 
-k = 30 # Example
+k = 10 # Example
 U_reduced = U[:, :k]
 S_reduced = S[:k]
 Vt_reduced = Vt[:k, :]
@@ -24,4 +24,4 @@ D_reduced = magnitude_reduced * np.exp(1j * np.angle(D))
 
 y_reduced = librosa.istft(D_reduced, hop_length=hop_length)
 
-sf.write('reduced_dimensionality_audio.wav', y_reduced, sr)
+sf.write('outputs/reduced_dimensionality_audio.wav', y_reduced, sr)

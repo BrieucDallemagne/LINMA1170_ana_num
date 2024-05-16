@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import soundfile as sf
 
-filename = 'elton.wav'
+filename = 'a.wav'
 y, sr = librosa.load(filename)
 
 n_fft = 2048
@@ -23,4 +23,4 @@ D_compressed = magnitude_compressed * np.exp(1j * np.angle(D))
 
 y_compressed = librosa.istft(D_compressed, hop_length=hop_length)
 
-sf.write('compressed_audio.wav', y_compressed, sr)
+sf.write('outputs/compressed_audio.wav', y_compressed, sr)

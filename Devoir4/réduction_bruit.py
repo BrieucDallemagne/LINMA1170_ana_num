@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import soundfile as sf
 
-filename = 'elton.wav'
+filename = 'a.wav'
 y, sr = librosa.load(filename)
 
 n_fft = 2048
@@ -22,4 +22,4 @@ D_denoised = magnitude_denoised * np.exp(1j * np.angle(D))
 
 y_denoised = librosa.istft(D_denoised, hop_length=hop_length)
 
-sf.write('denoised_audio.wav', y_denoised, sr)
+sf.write('outputs/denoised_audio.wav', y_denoised, sr)

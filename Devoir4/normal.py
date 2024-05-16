@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import soundfile as sf
 
-filename = 'elton.wav'
+filename = 'a.wav'
 y, sr = librosa.load(filename)
 
 n_fft = 2048
@@ -19,5 +19,5 @@ D_reconstructed = magnitude_reconstructed * np.exp(1j * np.angle(D))
 
 y_reconstructed = librosa.istft(D_reconstructed, hop_length=hop_length)
 
-output_filename = 'normal.wav'
+output_filename = 'outputs/normal.wav'
 sf.write(output_filename, y_reconstructed, sr)
