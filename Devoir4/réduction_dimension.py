@@ -37,5 +37,5 @@ plt.colorbar()
 plt.title('Reduced dimensionality magnitude spectrogram')
 
 plt.tight_layout()
-plt.show()
+#plt.show()
 plt.savefig('img/reduced_dimensionality.pdf')

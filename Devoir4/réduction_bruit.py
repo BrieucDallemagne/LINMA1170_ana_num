@@ -35,5 +35,5 @@ plt.colorbar()
 plt.title('Denoised magnitude spectrogram')
 
 plt.tight_layout()
-plt.show()
+#plt.show()
 plt.savefig('img/denoised.pdf')

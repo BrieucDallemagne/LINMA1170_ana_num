@@ -13,7 +13,7 @@ D = librosa.stft(y, n_fft=n_fft, hop_length=hop_length)
 magnitude = np.abs(D)
 U, S, Vt = np.linalg.svd(magnitude, full_matrices=False)
 
-S[2:] = 0  # example 
+S[10:] = 0  # example 
 
 magnitude_reconstructed = np.dot(U, np.dot(np.diag(S), Vt))
 
@@ -35,5 +35,5 @@ plt.colorbar()
 plt.title('Reconstructed magnitude spectrogram')
 
 plt.tight_layout()
-plt.show()
+#plt.show()
 plt.savefig('img/annulation.pdf')

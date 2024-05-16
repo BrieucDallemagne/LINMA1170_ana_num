@@ -14,7 +14,7 @@ magnitude = np.abs(D)
 U, S, Vt = np.linalg.svd(magnitude, full_matrices=False)
 
 S_feature_extracted = np.zeros_like(S)
-start, end = 100, 800  # Example
+start, end = 10, 1024  # Example
 S_feature_extracted[start:end] = S[start:end]
 
 magnitude_feature_extracted = np.dot(U, np.dot(np.diag(S_feature_extracted), Vt))
@@ -37,6 +37,6 @@ plt.colorbar()
 plt.title('Feature extracted magnitude spectrogram')
 
 plt.tight_layout()
-plt.show()
+#plt.show()
 plt.savefig('img/feature_extraction.pdf')
 
