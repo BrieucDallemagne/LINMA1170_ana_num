@@ -1,33 +1,18 @@
 import numpy as np
 import scipy as sp
-from pydub import AudioSegment
+from audio2numpy import open_audio
  
-def load_mp3(file_path,sample_rate=40):
- 
-    audio = AudioSegment.from_mp3(file_path)
- 
-    audio = audio.set_frame_rate(sample_rate)
- 
-    audio_array = np.array(audio.get_array_of_samples())
- 
-   
-    audio_array = audio_array / np.max(np.abs(audio_array))
- 
-    return audio_array
- 
- 
- 
+def load_mp3(file_path):
+    signal, sampling_rate = open_audio(file_path)
+    return signal,sampling_rate
  
 def save_wav(file_path, data, sample_rate):
  
-    sp.io.wavfile.write(file_path, sample_rate, data.astype(np.int16))
+    sp.io.wavfile.write(file_path, sample_rate, data.astype(np.float32))
  
 def blind_source_separation(audio_data):
  
     X = np.array(audio_data, dtype=float)
- 
-    X = np.outer(X, X)
-   
  
     U, s, V = sp.linalg.svd(X, full_matrices=False)
  
@@ -36,12 +21,13 @@ def blind_source_separation(audio_data):
  
     return sources
  
-input_mp3_file = "son_MP3/a.wav"
+input_mp3_file = "elton.wav"
  
-audio_data = load_mp3(input_mp3_file)
+audio_data, sampling_rate = load_mp3(input_mp3_file)
+print(audio_data, sampling_rate)
  
 separated_sources = blind_source_separation(audio_data)
  
 for i, source in enumerate(separated_sources.T):
     output_wav_file = f"source_{i+1}.wav"
-    save_wav(output_wav_file, source, 44100)
+    save_wav(output_wav_file, source, sampling_rate)
