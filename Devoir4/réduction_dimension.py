@@ -25,3 +25,17 @@ D_reduced = magnitude_reduced * np.exp(1j * np.angle(D))
 y_reduced = librosa.istft(D_reduced, hop_length=hop_length)
 
 sf.write('outputs/reduced_dimensionality_audio.wav', y_reduced, sr)
+
+plt.figure(figsize=(12, 8))
+plt.subplot(2, 1, 1)
+plt.imshow(magnitude, aspect='auto', origin='lower', vmin=0, vmax=20)
+plt.colorbar()
+plt.title('Original magnitude spectrogram')
+plt.subplot(2, 1, 2)
+plt.imshow(magnitude_reduced, aspect='auto', origin='lower', vmin=0, vmax=20)
+plt.colorbar()
+plt.title('Reduced dimensionality magnitude spectrogram')
+
+plt.tight_layout()
+plt.show()
+plt.savefig('img/reduced_dimensionality.pdf')

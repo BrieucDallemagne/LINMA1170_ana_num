@@ -23,3 +23,17 @@ D_denoised = magnitude_denoised * np.exp(1j * np.angle(D))
 y_denoised = librosa.istft(D_denoised, hop_length=hop_length)
 
 sf.write('outputs/denoised_audio.wav', y_denoised, sr)
+
+plt.figure(figsize=(12, 8))
+plt.subplot(2, 1, 1)
+plt.imshow(magnitude, aspect='auto', origin='lower', vmin=0, vmax=20)
+plt.colorbar()
+plt.title('Original magnitude spectrogram')
+plt.subplot(2, 1, 2)
+plt.imshow(magnitude_denoised, aspect='auto', origin='lower', vmin=0, vmax=20)
+plt.colorbar()
+plt.title('Denoised magnitude spectrogram')
+
+plt.tight_layout()
+plt.show()
+plt.savefig('img/denoised.pdf')
