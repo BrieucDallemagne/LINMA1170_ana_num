@@ -11,7 +11,7 @@ import soundfile as sf
 import matplotlib.pyplot as plt
 
 # import audio
-filename = 'input/a.mp3'
+filename = 'inputs/a.mp3'
 y, sr = librosa.load(filename)
 
 # compute STFT
@@ -53,15 +53,15 @@ plt.figure(figsize=(12, 8))
 plt.subplot(3, 1, 1)
 plt.imshow(magnitude, aspect='auto', origin='lower', vmin=0, vmax=20)
 plt.colorbar()
-plt.title('Original magnitude spectrogram')
+plt.title('spectrogram de la magnitude initiale')
 plt.subplot(3, 1, 2)
 plt.imshow(magnitude_music, aspect='auto', origin='lower', vmin=0, vmax=20)
 plt.colorbar()
-plt.title('10 first singular values')
+plt.title('10 premières valeurs singulières')
 plt.subplot(3, 1, 3)
 plt.imshow(magnitude_vocals, aspect='auto', origin='lower', vmin=0, vmax=20)
 plt.colorbar()
-plt.title('rest of singular values')
+plt.title('reste des valeurs singulières')
 plt.tight_layout()
 #plt.show()
 plt.savefig('img/comparaison_audio.pdf')
