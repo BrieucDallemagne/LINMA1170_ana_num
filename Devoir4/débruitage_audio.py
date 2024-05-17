@@ -1,5 +1,5 @@
 #################################################
-# compression_audio.py
+# débruitage_audio.py
 # Authors : Charles Van Hees and Brieuc Dallemagne
 #
 # This script compresses an audio signal using the SVD method.
