@@ -3,7 +3,7 @@ import numpy as np
 import soundfile as sf
 import matplotlib.pyplot as plt
 
-filename = 'a.mp3'
+filename = 'pouvoir_fleur.mp3'
 y, sr = librosa.load(filename)
 
 n_fft = 2048
