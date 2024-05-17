@@ -4,6 +4,22 @@ import matplotlib.pyplot as plt
 import soundfile as sf
 import argparse
 
+"""
+plt.figure(figsize=(12, 8))
+plt.subplot(2, 1, 1)
+plt.imshow(magnitude, aspect='auto', origin='lower', vmin=0, vmax=20)
+plt.colorbar()
+plt.title('Original magnitude spectrogram')
+plt.subplot(2, 1, 2)
+plt.imshow(magnitude_reconstructed, aspect='auto', origin='lower', vmin=0, vmax=20)
+plt.colorbar()
+plt.title('Reconstructed magnitude spectrogram')
+
+plt.tight_layout()
+#plt.show()
+plt.savefig('img/compression.pdf')
+"""
+
 def denoise_signal(filename, output_file, k=70) :
     y, sr = librosa.load(filename)
     D = librosa.stft(y)
