@@ -7,7 +7,6 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import argparse
 
 def apply_SVD(image, k=50) :
