@@ -6,10 +6,6 @@ import soundfile as sf
 filename = 'a.wav'
 y, sr = librosa.load(filename)
 
-l = len(y)
-max = max(y)
-for i in range(l):
-    y[i] = y[i] + np.random.uniform(-max/10000, max/10000)
 
 n_fft = 2048
 hop_length = 512

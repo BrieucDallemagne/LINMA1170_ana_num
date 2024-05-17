@@ -1,0 +1,146 @@
+\documentclass[a4paper, 11pt]{article}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage[french]{babel}
+\usepackage{comment}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{hmargin=2cm,vmargin=2cm}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{hyperref}
+\usepackage{subfigure}
+\usepackage{xcolor}
+\usepackage{nicematrix}
+
+% Equations with matrix
+% Source : https://tex.stackexchange.com/questions/248412/how-to-write-matrices-with-dimensions-in-latex
+\usepackage{stackengine}
+\stackMath
+\newlength\matfield
+\newlength\tmplength
+\def\matscale{1.}
+\newcommand\dimbox[3]{
+  \setlength\matfield{\matscale\baselineskip}
+  \setbox0=\hbox{\vphantom{X}\smash{#3}}
+  \setlength{\tmplength}{#1\matfield-\ht0-\dp0}
+  \fboxrule=1pt\fboxsep=-\fboxrule\relax
+  \fbox{\makebox[#2\matfield]{\addstackgap[.5\tmplength]{\box0}}}
+}
+\newcommand\raiserows[2]{
+   \setlength\matfield{\matscale\baselineskip}
+   \raisebox{#1\matfield}{#2}
+}
+\newcommand\matbox[5]{
+  \stackunder{\dimbox{#1}{#2}{$#5$}}{\scriptstyle(#3\times #4)}
+}
+
+\title{\vspace{-1cm} LINMA1170 --- Devoir 4~: Blind audio source separation}
+\author{Brieuc Dallemagne \texttt{77122100} \and Charles Van Hees \texttt{35562100}}
+\date{}
+
+\pagestyle{plain}
+
+\begin{document}
+
+\maketitle
+
+Qui n'a jamais rêvé d'enlever la mélodie d'une chanson pour comprendre ce que le chanteur raconte au milieu de ces instruments~? Ou encore de n'avoir que la bande son d'une chanson pour se préparer à la célèbre émission \textit{N'oubliez pas les paroles}~? Grâce à la \textit{blind audio source separation}, ceci est possible. Son objectif est de séparer les différentes composantes d'un signal audio en utilisant la décomposition en valeurs singulières pour pouvoir les réécouter séparément. Dans un premier temps, nous présenterons la \hyperref[sec:SVD]{SVD} et son interprétation géométrique. Ensuite, nous l'utiliserons pour développer une \hyperref[sec:BASS]{application de séparation de signaux audio}.
+
+\section{La décomposition en valeurs singulières (SVD)}\label{sec:SVD}
+\subsection{Motivation}\label{subsec:motivation}
+\noindent Il existe de nombreuses formes de factorisation matricielle. Lorsque nous travaillons avec une matrice $C$ carrée telle que la multiplicité algébrique est égale à la multiplicité géométrique, nous pouvons la diagonaliser sous la forme $Q \Lambda Q^{-1}$ avec $\Lambda$ une matrice diagonale composée des valeurs propres de $C$ et $Q$ la matrice des vecteurs propres associés. Cependant, que pouvons-nous faire si les multiplicités algébrique et géométrique sont différentes, ou si la matrice $C$ n'est pas carrée~?\\
+Considérons une matrice $S$ symétrique. Dans ce cas, le théorème spectral affirme que les valeurs propres sont réelles et que la matrice $Q$ de la diagonalisation est unitaire ($Q^{-1}$ = $Q^*$). En outre, si la matrice est semi-définie positive, ces valeurs propres sont positives. La SVD se base sur ces idées.\\
+La décomposition SVD est une décomposition matricielle qui existe pour n'importe quel type de matrice. Soit une matrice $A \in {\mathbb{C}}^{m \times n}$. La décomposition en valeurs singulières de la matrice $A$ permet d'écrire $A = U \Sigma V^*$, avec $U \in \mathbb{C}^{m \times n}$ et $V \in \mathbb{C}^{n \times n}$ deux matrices unitaires ($UU^* = VV^* = I$) et $\Sigma \in \mathbb{R}^{n \times n}$ une matrice diagonale\footnote{La SVD ici présentée est dite réduite, en comparaison avec la pleine pour laquelle $U \in \mathbb{C}^{m \times m}$ et $\Sigma \in \mathbb{R}^{m \times n}$ (si $m \geq n$). Nous n'entrerons pas dans les détails dans ce document mais les sources~\cite{trefethen} et~\cite{strang} peuvent être consultées.}. Cette structure est illustrée à la figure~\ref{fig:SVD_full}. Les éléments diagonaux de $\Sigma$ sont appelés les valeurs singulières de la matrice $A$ qui sont toujours positives. Par convention, celles-ci sont ordonnées par ordre décroissant, rendant la décomposition SVD d'une matrice unique. Les colonnes de $U$ et de $V$ sont les vecteurs singuliers de $A$ à gauche et à droite respectivement.
+
+\begin{figure}[!htb]
+    \centering
+    \matbox{3}{2}{m}{n}{A} = \matbox{3}{3}{m}{m}{U} \matbox{3}{2}{m}{n}{\Sigma} \matbox{2}{2}{n}{n}{V\textsuperscript{T}}
+    \caption{La SVD pleine}
+    \label{fig:SVD_full}
+\end{figure}
+
+\subsection{Obtention de la SVD}\label{subsec:obtention}
+Comme mentionné précédemment, la SVD se base sur des matrices symétriques définies positives (SDP). Soit une matrice $A \in \mathbb{C}^{m \times n}$. Les matrices $AA^*$ et $A^* A$ sont SDP et ont exactement les mêmes valeurs propres non nulles\footnote{L'une de ces deux matrices peut avoir plus de valeurs propres nulles que l'autre, mais ceci ne peut arriver que si $A$ n'est pas de rang plein.}. Nous allons raisonner de façon inverse. Supposons que $A = U \Sigma V$, avec $U$, $\Sigma$ et $V$ comme définies à la section~\ref{subsec:motivation}. Nous pouvons écrire~:
+\begin{equation}
+    A^* A = V^* \Sigma^* U^* U \Sigma V = V^* \Sigma^2 V
+\end{equation}
+Par identification des termes, nous trouvons que les valeurs propres de $A^T A$ correspondent aux carrés des valeurs singulières de $A$ et que les vecteurs propres de $A^T A$ sont les vecteurs singuliers à droite de $A$. Pour trouver les colonnes de la matrice $U$, nous avons le choix entre appliquer un raisonnement similaire à $AA^T$ ou à calculer $U = A V \Sigma^{-1}$ à condition qu'aucune valeur singulière ne soit nulle.
+
+\subsection{Interprétation géométrique}\label{subsec:geometric}
+La SVD a une représentation visuelle assez jolie. Lorsque nous appliquons une matrice $A \in \mathbb{R}^{2 \times 2}$ au cercle unité\footnote{L'interprétation géométrique est plus visuelle avec deux dimensions dans les réels. Toutefois, ceci est généralisable à toutes les dimensions avec des hypersphères et des hyperellipses.}, celui-ci prend la forme d'une ellipse. Les valeurs singuliers à droite sont les vecteurs unitaires qui, lorsque nous leur appliquons l'application linéaire associée à la matrice $A$, donnent les vecteurs singuliers à gauche correspondant aux axes principaux de l'ellipse. De façon plus rigoureuse, analysons les effets des trois matrices $V$, $\Sigma$ et $U$ lorsqu'elles sont appliquées à un vecteur $x$ ($Ax = U\Sigma V^T x$). Tout d'abord, $V$ étant une matrice orthogonale\footnote{Lorsque nous travaillons avec des matrices réelles, les matrices $U$ et $V$ seront réelles et nous pouvons parler de matrices orthogonales.}, une rotation est appliquée au vecteur $x$. Ensuite, la matrice $\Sigma$ étire le vecteur dans la direction des vecteurs singuliers avant d'appliquer une nouvelle rotation à l'hyperellipse obtenue avec la matrice orthogonale $U$. Ceci est représenté à la figure~\ref{fig:singular_eigen} dans laquelle nous comparons les vecteurs propres et singuliers. Pour rappel, les vecteurs propres d'une matrice $A$ sont ceux qui, lorsqu'ils sont pré-multipliés par la matrice $A$, donnent un vecteur multiple de lui-même. Il ne faut pas les confondre~!
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=0.7\textwidth]{singular_eigen.pdf}
+    \caption{Interprétation géométrique des vecteurs propres et des vecteurs singuliers. Les vecteurs propres d'une matrice $A$ sont tels que $Ax = \lambda x$ (appliquer la matrice $A$ ne fait que les étirer). Les vecteurs singuliers sont tels que $Av = \sigma u$ (les vecteurs $v$ sont ceux qui donnent les axes principaux de l'ellipse)}
+    \label{fig:singular_eigen}
+\end{figure}
+
+\newpage
+
+\section{Une application~: La \textit{la compression de données}}\label{sec:BASS}
+
+\subsection*{démarche}
+1: trouver/créer des données, matrice ou lignes => observation, colonnes => variables\\
+2: appliquer la SVD pour trouver les matrices $U$, $\Sigma$, et $V$, telles que $Data =  U \Sigma V^T$.
+Les matrices U et V contiennent les vecteurs propres des produits de covariance de la matrice des données,
+tandis que $\Sigma$ contient les valeurs singulières qui fournissent des informations sur l'importance relative de chaque mode.\\
+3: Séparation des sources, ce qui nous intéresse c'est U et $V^T$, comment ? :sélectionner les composantes associées aux valeurs singulières les plus importantes\\
+=> Ces composantes correspondent généralement aux directions des signaux les plus dominants dans le mélange.\\
+4: tester en reconstruisant les signaux avec la formule inverse de la SVD\\
+5:Évaluation  : pas encore trouvé 
+
+
+\section{Une application~: La \textit{blind source separation}}
+
+\subsection{Pourquoi la SVD est-elle utile pour la compression de données?}
+Pour notre application nous avons décider de nous intéresser à la compression données, plus précisement à la compression d'images et de fichiers audios.\\
+Nous avons considéré que ce sujet était pertinent pour les raisons suivantes :\\
+\begin{itemize}
+    \item La SVD est une méthode de compression de données très efficace, qui permet de réduire la taille des données tout en conservant l'essentiel de l'information.\\
+    \item La SVD est une méthode de compression de données très flexible, qui peut être appliquée à une grande variété de types de données, que ce soit à des images en couleur, en noir et blanc ou à des fichiers audio.\\
+\end{itemize}
+
+
+\begin{thebibliography}{00}
+    \bibitem{trefethen}
+    D. Bau et L. N. Trefethen (1997). \textit{Numerical Linear Algebra}. Chapitres 4 et 5. Philadelphia~: SIAM.
+    \bibitem{documentation stft}\href{https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.stft.html}{documentation scipt.signal.stft}
+    \bibitem{strang} G. Strang (2016). \textit{Introduction to Linear Algebra} (5\textsuperscript{e} édition). Chapitre 7. Wellesley~: Cambridge Press
+    \bibitem{strang-SDP} G. Strang (2014). \textit{Differential Equations and Linear Algebra}. Chapitre 7.2. Wellesley~: Cambridge Press
+\end{thebibliography}
+
+\end{document}
+
+\newpage
+
+\section{Une application~: La \textit{blind source separation}}
+
+\subsection{Pourquoi la SVD est-elle utile pour la compression de données?}
+Pour notre application nous avons décider de nous intéresser à la compression données, plus précisement à la compression d'images et de fichiers audios.\\
+Nous avons considéré que ce sujet était pertinent pour les raisons suivantes :\\
+\begin{itemize}
+    \item La SVD est une méthode de compression de données très efficace, qui permet de réduire la taille des données tout en conservant l'essentiel de l'information.\\
+    \item La SVD est une méthode de compression de données très flexible, qui peut être appliquée à une grande variété de types de données, que ce soit à des images en couleur, en noir et blanc ou à des fichiers audio.\\
+\end{itemize}
+
+
+
+
+\begin{thebibliography}{00}
+  \bibitem{trefethen}
+  D. Bau et L. N. Trefethen (1997). \textit{Numerical Linear Algebra}. Chapitres 4 et 5. Philadelphia~: SIAM.
+  \bibitem{Massachussetts Institute of Technology}
+Gari D.Clifford. \href{https://www.mit.edu/~gari/teaching/6.555/SLIDES/BSShandouts.pdf}{Blind Source Separation:
+PCA and ICA}
+  \bibitem{Massachussetts Institute of Technology} Biomedical Signal and Image Processing Spring 2005
+\href{https://www.mit.edu/~gari/teaching/6.222j/ICASVDnotes.pdf}{Singular Value Decomposition and
+Independent Component Analysis
+for Blind Source Separation}
+    \bibitem{strang} G. Strang (2016). \textit{Introduction to Linear Algebra} (5\textsuperscript{e} édition). Chapitre 7. Wellesley~: Cambridge Press.
+    \bibitem{strang-SDP} G. Strang (2014). \textit{Differential Equations and Linear Algebra}. Chapitre 7.2. Wellesley~: Cambridge Press.
+\end{thebibliography}
+
+\end{document}
